@@ -1,5 +1,6 @@
 import docker
 import tempfile
+from docker.constants import CREATED, EXITED, PAUSED, RUNNING
 from .base import BaseIntegrationTest, TEST_API_VERSION
 from ..helpers import random_name
 
@@ -165,12 +166,12 @@ class ContainerTest(BaseIntegrationTest):
         client = docker.from_env(version=TEST_API_VERSION)
         container = client.containers.run("alpine", "sleep 300", detach=True)
         self.tmp_containers.append(container.id)
-        while container.status != 'running':
+        while container.status != RUNNING:
             container.reload()
-        assert container.status == 'running'
+        assert container.status == RUNNING
         container.kill()
         container.reload()
-        assert container.status == 'exited'
+        assert container.status == EXITED
 
     def test_logs(self):
         client = docker.from_env(version=TEST_API_VERSION)
@@ -186,10 +187,10 @@ class ContainerTest(BaseIntegrationTest):
         self.tmp_containers.append(container.id)
         container.pause()
         container.reload()
-        assert container.status == "paused"
+        assert container.status == PAUSED
         container.unpause()
         container.reload()
-        assert container.status == "running"
+        assert container.status == RUNNING
 
     def test_remove(self):
         client = docker.from_env(version=TEST_API_VERSION)
@@ -225,10 +226,10 @@ class ContainerTest(BaseIntegrationTest):
         client = docker.from_env(version=TEST_API_VERSION)
         container = client.containers.create("alpine", "sleep 50", detach=True)
         self.tmp_containers.append(container.id)
-        assert container.status == "created"
+        assert container.status == CREATED
         container.start()
         container.reload()
-        assert container.status == "running"
+        assert container.status == RUNNING
 
     def test_stats(self):
         client = docker.from_env(version=TEST_API_VERSION)
@@ -243,10 +244,10 @@ class ContainerTest(BaseIntegrationTest):
         client = docker.from_env(version=TEST_API_VERSION)
         container = client.containers.run("alpine", "top", detach=True)
         self.tmp_containers.append(container.id)
-        assert container.status in ("running", "created")
+        assert container.status in (RUNNING, CREATED)
         container.stop(timeout=2)
         container.reload()
-        assert container.status == "exited"
+        assert container.status == EXITED
 
     def test_top(self):
         client = docker.from_env(version=TEST_API_VERSION)
